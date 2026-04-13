@@ -49,15 +49,12 @@ const deviceInfoSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// ─── Main Schema ──────────────────────────────────────────────────────────────
 
 const userSchema = new mongoose.Schema(
   {
-    // ── Identity ──────────────────────────────────────────────────────────────
     fullName: {
       type: String,
       required: [true, 'Username is required'],
-      unique: true,
       trim: true,
       minlength: [3, 'Username must be at least 3 characters'],
       maxlength: [20, 'Username cannot exceed 20 characters'],
@@ -70,7 +67,6 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, 'Email is required'],
-      unique: true,
       lowercase: true,
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
@@ -78,18 +74,15 @@ const userSchema = new mongoose.Schema(
     phone:{
         type: String,
         required: [true, 'Phone number is required'],
-        unique: true,
         match: [/^\d{10}$/, 'Please provide a valid 10-digit phone number'],
     },
 
-    // ── Financial ─────────────────────────────────────────────────────────────
     walletBalance: {
       type: Number,
       default: 0,
       min: [0, 'Wallet balance cannot be negative'],
     },
 
-    // ── Account Status ────────────────────────────────────────────────────────
     isBlocked: {
       type: Boolean,
       default: false,
@@ -104,7 +97,6 @@ const userSchema = new mongoose.Schema(
       default: KycStatus.PENDING,
     },
 
-    // ── Device & Tracking ─────────────────────────────────────────────────────
     deviceInfo: {
       type: deviceInfoSchema,
       default: () => ({}),
@@ -116,7 +108,17 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// ─── Model ────────────────────────────────────────────────────────────────────
+
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ phone: 1 }, { unique: true });
+userSchema.index({ createdAt: -1 });
+
+/**
+ * Compound Index: Administrative Lookup
+ * Why: This optimizes queries that filter for high-risk or specific 
+ * user segments (e.g., "Show me all blocked users with pending KYC").
+ */
+userSchema.index({ isBlocked: 1, kycStatus: 1 });
 
 const User = mongoose.model('User', userSchema);
 

@@ -61,3 +61,35 @@ recip.to/
 - Express
 - Nodemon
 
+## Database Indexes
+
+Open terminal and run the following command:
+
+```node check-indexes.js
+```
+
+## OR 
+Manually verify in mongosh
+Run in mongosh to verify:
+```js
+use recipto
+db.users.getIndexes()
+```
+
+Expected output:
+```json
+[
+  { "key": { "_id": 1 }, "name": "_id_" },
+  { "key": { "email": 1 }, "name": "email_1", "unique": true },
+  { "key": { "phone": 1 }, "name": "phone_1", "unique": true },
+  { "key": { "isBlocked": 1, "kycStatus": 1 }, "name": "isBlocked_1_kycStatus_1" },
+  { "key": { "createdAt": -1 }, "name": "createdAt_-1" }
+]
+```
+
+### Index justification
+- `email` unique index — primary lookup field for all user queries and updates
+- `phone` unique index — enforces no duplicate phone numbers
+- `isBlocked + kycStatus` compound index — admin queries filtering blocked/pending users hit this index instead of scanning all documents
+- `createdAt` descending — efficient pagination and sorting by newest users first
+
