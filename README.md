@@ -65,7 +65,8 @@ recip.to/
 
 Open terminal and run the following command:
 
-```node check-indexes.js
+```
+node check-indexes.js
 ```
 
 ## OR 
